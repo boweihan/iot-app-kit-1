@@ -23,7 +23,7 @@ export const initialize = (input: IoTAppKitInitInputs) => {
   const siteWiseAssetModule = new SiteWiseAssetModule(assetDataSource);
   const siteWiseAssetModuleSession = siteWiseAssetModule.startSession();
 
-  if (input.registerDataSources) {
+  if (input.registerDataSources !== false) {
     /** Automatically registered data sources */
     dataModule.registerDataSource(createDataSource(siteWiseSdk));
   }
