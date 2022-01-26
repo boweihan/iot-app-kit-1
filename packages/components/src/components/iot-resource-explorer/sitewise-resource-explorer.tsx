@@ -3,6 +3,7 @@ import {
   AssetTreeSubscription,
   BranchReference,
   getSiteWiseAssetModule,
+  IoTAppKitSession,
   SiteWiseAssetTreeModule,
   SiteWiseAssetTreeQuery,
   SiteWiseAssetTreeSession,
@@ -18,6 +19,7 @@ import { NonCancelableCustomEvent } from '@awsui/components-react';
   tag: 'sitewise-resource-explorer',
 })
 export class SitewiseResourceExplorer {
+  @Prop() appKitSession: IoTAppKitSession;
   @Prop() query: SiteWiseAssetTreeQuery;
   @Prop() columnDefinitions: ColumnDefinition<any>[];
   @Prop() filterTexts?: FilterTexts;

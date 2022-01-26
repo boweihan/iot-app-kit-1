@@ -1,11 +1,11 @@
 import { mount } from '@cypress/vue';
 import { h } from 'vue';
 import {
-  DataModule,
   SiteWiseDataStreamQuery,
   TimeSeriesDataRequestSettings,
   StyleSettingsMap,
   initialize,
+  IoTAppKitSession,
 } from '@iot-app-kit/core';
 import { MinimalViewPortConfig } from '@synchro-charts/core';
 import { MINUTE_IN_MS } from '@iot-app-kit/core/src/common/time';
@@ -19,13 +19,13 @@ export const testChartContainerClassName = 'test-chart-container';
 
 export const testChartContainerClassNameSelector = `.${testChartContainerClassName}`;
 
-const newDefaultAppKit = initialize({
+const newDefaultAppKitSession = initialize({
   awsCredentials: {
     accessKeyId: 'accessKeyId',
     secretAccessKey: 'secretAccessKey',
   },
   awsRegion: 'us-east-1',
-});
+}).session();
 
 const defaultChartType = 'iot-line-chart';
 
@@ -56,21 +56,21 @@ const defaultViewport = { start, end };
 export const renderChart = (
   {
     chartType = defaultChartType,
-    appKit = newDefaultAppKit,
+    appKitSession = newDefaultAppKitSession,
     queries = defaultQueries,
     settings = defaultSettings,
     viewport = defaultViewport,
     styleSettings,
   }: {
     chartType?: string;
-    appKit?: DataModule;
+    appKitSession?: IoTAppKitSession;
     queries?: SiteWiseDataStreamQuery[];
     settings?: TimeSeriesDataRequestSettings;
     viewport?: MinimalViewPortConfig;
     styleSettings?: StyleSettingsMap;
   } = {
     chartType: defaultChartType,
-    appKit: newDefaultAppKit,
+    appKitSession: newDefaultAppKitSession,
     queries: defaultQueries,
     settings: defaultSettings,
     viewport: defaultViewport,
@@ -84,7 +84,7 @@ export const renderChart = (
     },
     render: function () {
       const containerProps = { class: testChartContainerClassName, style: { width: '400px', height: '500px' } };
-      const chartProps: any = { appKit, queries, settings, viewport, styleSettings };
+      const chartProps: any = { appKitSession, queries, settings, viewport, styleSettings };
 
       return (
         <div {...containerProps}>

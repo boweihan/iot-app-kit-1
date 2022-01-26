@@ -1,6 +1,6 @@
 import { AggregateType } from '@aws-sdk/client-iotsitewise';
 import { SiteWiseClient } from './client';
-import { createSiteWiseSDK } from '../../../common/tests/util';
+import { createMockSiteWiseSDK } from '../../../common/tests/util';
 import {
   ASSET_PROPERTY_DOUBLE_VALUE,
   ASSET_PROPERTY_VALUE_HISTORY,
@@ -11,7 +11,7 @@ import { toDataStreamId } from '../util/dataStreamId';
 import { SITEWISE_DATA_SOURCE } from '../data-source';
 
 it('initializes', () => {
-  expect(() => new SiteWiseClient(createSiteWiseSDK({}))).not.toThrowError();
+  expect(() => new SiteWiseClient(createMockSiteWiseSDK({}))).not.toThrowError();
 });
 
 describe('getHistoricalPropertyDataPoints', () => {
@@ -28,7 +28,7 @@ describe('getHistoricalPropertyDataPoints', () => {
       assets: [{ assetId, properties: [{ propertyId }] }],
     };
 
-    const client = new SiteWiseClient(createSiteWiseSDK({ getAssetPropertyValueHistory }));
+    const client = new SiteWiseClient(createMockSiteWiseSDK({ getAssetPropertyValueHistory }));
 
     const startDate = new Date(2000, 0, 0);
     const endDate = new Date(2001, 0, 0);
@@ -50,7 +50,7 @@ describe('getHistoricalPropertyDataPoints', () => {
       assets: [{ assetId, properties: [{ propertyId }] }],
     };
 
-    const client = new SiteWiseClient(createSiteWiseSDK({ getAssetPropertyValueHistory }));
+    const client = new SiteWiseClient(createMockSiteWiseSDK({ getAssetPropertyValueHistory }));
 
     const startDate = new Date(2000, 0, 0);
     const endDate = new Date(2001, 0, 0);
@@ -94,7 +94,7 @@ describe('getLatestPropertyDataPoint', () => {
       assets: [{ assetId, properties: [{ propertyId }] }],
     };
 
-    const client = new SiteWiseClient(createSiteWiseSDK({ getAssetPropertyValue }));
+    const client = new SiteWiseClient(createMockSiteWiseSDK({ getAssetPropertyValue }));
 
     await client.getLatestPropertyDataPoint({ query, onSuccess, onError });
     expect(getAssetPropertyValue).toBeCalledWith({ assetId, propertyId });
@@ -120,7 +120,7 @@ describe('getLatestPropertyDataPoint', () => {
     const assetId = 'some-asset-id';
     const propertyId = 'some-property-id';
 
-    const client = new SiteWiseClient(createSiteWiseSDK({ getAssetPropertyValue }));
+    const client = new SiteWiseClient(createMockSiteWiseSDK({ getAssetPropertyValue }));
 
     const onSuccess = jest.fn();
     const onError = jest.fn();
@@ -150,7 +150,7 @@ describe('getAggregatedPropertyDataPoints', () => {
       assets: [{ assetId, properties: [{ propertyId }] }],
     };
 
-    const client = new SiteWiseClient(createSiteWiseSDK({ getAssetPropertyAggregates }));
+    const client = new SiteWiseClient(createMockSiteWiseSDK({ getAssetPropertyAggregates }));
 
     const startDate = new Date(2000, 0, 0);
     const endDate = new Date(2001, 0, 0);
@@ -182,7 +182,7 @@ describe('getAggregatedPropertyDataPoints', () => {
       assets: [{ assetId, properties: [{ propertyId }] }],
     };
 
-    const client = new SiteWiseClient(createSiteWiseSDK({ getAssetPropertyAggregates }));
+    const client = new SiteWiseClient(createMockSiteWiseSDK({ getAssetPropertyAggregates }));
 
     const startDate = new Date(2000, 0, 0);
     const endDate = new Date(2001, 0, 0);
@@ -212,7 +212,7 @@ describe('getAggregatedPropertyDataPoints', () => {
     };
     const getAssetPropertyAggregates = jest.fn().mockResolvedValue(AGGREGATE_VALUES);
 
-    const client = new SiteWiseClient(createSiteWiseSDK({ getAssetPropertyAggregates }));
+    const client = new SiteWiseClient(createMockSiteWiseSDK({ getAssetPropertyAggregates }));
 
     const startDate = new Date(2000, 0, 0);
     const endDate = new Date(2001, 0, 0);

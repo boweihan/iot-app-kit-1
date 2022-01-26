@@ -1,6 +1,8 @@
 import { IoTSiteWiseClient } from '@aws-sdk/client-iotsitewise';
 
-export const createSiteWiseSDK = ({
+export const createMockSiteWiseSDK = ({
+  describeAsset = jest.fn(),
+  describeAssetModel = jest.fn(),
   getAssetPropertyValue = jest.fn(),
   getAssetPropertyAggregates = jest.fn(),
   getAssetPropertyValueHistory = jest.fn(),
@@ -13,6 +15,10 @@ export const createSiteWiseSDK = ({
       const commandName = command.constructor.name;
 
       switch (commandName) {
+        case 'DescribeAssetCommand':
+          return describeAsset(command.input);
+        case 'DescribeAssetModelCommand':
+          return describeAssetModel(command.input);
         case 'GetAssetPropertyValueCommand':
           return getAssetPropertyValue(command.input);
         case 'GetAssetPropertyAggregatesCommand':

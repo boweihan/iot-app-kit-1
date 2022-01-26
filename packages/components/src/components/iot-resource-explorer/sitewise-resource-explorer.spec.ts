@@ -34,7 +34,7 @@ jest.mock('@iot-app-kit/core', () => {
   };
 });
 
-const sitewiseResourceExplorerSpec = async (injectProps: any) => {
+const sitewiseResourceExplorerSpec = async (propOverrides: Partial<Components.SitewiseResourceExplorer>) => {
   const page = await newSpecPage({
     components: [SitewiseResourceExplorer],
     html: '<div></div>',
@@ -45,9 +45,9 @@ const sitewiseResourceExplorerSpec = async (injectProps: any) => {
     'sitewise-resource-explorer'
   ) as CustomHTMLElement<Components.SitewiseResourceExplorer>;
   const props: Partial<Components.SitewiseResourceExplorer> = {
-    ...injectProps,
     query,
     columnDefinitions,
+    ...propOverrides,
   };
   update(sitewiseResourceExplorer, props);
   page.body.appendChild(sitewiseResourceExplorer);
@@ -71,7 +71,7 @@ it('renders with custom copy', async () => {
   const { sitewiseResourceExplorer } = await sitewiseResourceExplorerSpec({
     selectionType: 'single',
     loadingText: 'loading...',
-    filterText: {
+    filterTexts: {
       placeholder: 'Filter by name',
       empty: 'No assets found.',
       noMatch: `We can't find a match.`,

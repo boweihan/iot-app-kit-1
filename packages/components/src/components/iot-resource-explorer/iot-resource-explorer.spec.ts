@@ -24,9 +24,9 @@ jest.mock('@iot-app-kit/core', () => {
   };
 });
 
-const appKitInit = initialize({ awsCredentials, awsRegion: 'us-east-1' });
+const resourceExplorerSpec = async (propOverrides: Partial<Components.IotResourceExplorer>) => {
+  const appKitSession = initialize({ awsCredentials, awsRegion: 'us-east-1' }).session();
 
-const resourceExplorerSpec = async (injectProps: any) => {
   const page = await newSpecPage({
     components: [IotResourceExplorer],
     html: '<div></div>',
@@ -37,9 +37,9 @@ const resourceExplorerSpec = async (injectProps: any) => {
     'iot-resource-explorer'
   ) as CustomHTMLElement<Components.IotResourceExplorer>;
   const props: Partial<Components.IotResourceExplorer> = {
-    ...injectProps,
-    appKit: appKitInit,
+    appKitSession,
     query,
+    ...propOverrides,
   };
   update(resourceExplorer, props);
   page.body.appendChild(resourceExplorer);
