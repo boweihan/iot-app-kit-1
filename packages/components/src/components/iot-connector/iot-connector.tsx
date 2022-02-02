@@ -33,7 +33,7 @@ export class IotConnector {
 
   componentWillLoad() {
     // Subscribe to data module for the requested `query`
-    const { update, unsubscribe } = this.appKitSession.subscribeToDataStreams(
+    const { update, unsubscribe } = this.appKitSession.subscribeToTimeSeriesData(
       {
         queries: this.queries,
         request: this.request,

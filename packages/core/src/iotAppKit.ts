@@ -15,6 +15,7 @@ import { DescribeAssetModelResponse } from '@aws-sdk/client-iotsitewise';
 import { completeDataStreams } from './completeDataStreams';
 import { IoTAppKitSession, IoTAppKitInitInputs } from './interface.d';
 import { createDataSource } from './iotsitewise/time-series-data';
+import { subscribeToTimeSeriesData } from './iotsitewise/time-series-data/coordinator';
 
 /**
  * Initialize IoT App Kit
@@ -38,54 +39,7 @@ export const initialize = (input: IoTAppKitInitInputs) => {
 
   return {
     session: (): IoTAppKitSession => ({
-      subscribeToDataStreams: <Query extends DataStreamQuery>(
-        { queries, request }: DataModuleSubscription<Query>,
-        callback: DataStreamCallback
-      ) => {
-        let dataStreams: DataStream[] = [];
-        const assetModels: Record<string, DescribeAssetModelResponse> = {};
-
-        const siteWiseQueries = queries as unknown as SiteWiseDataStreamQuery[];
-
-        const emit = () => {
-          callback(completeDataStreams({ dataStreams, assetModels }));
-        };
-
-        const { update, unsubscribe } = dataModule.subscribeToDataStreams(
-          { queries, request },
-          (updatedDataStreams) => {
-            dataStreams = updatedDataStreams;
-            emit();
-          }
-        );
-
-        siteWiseQueries.forEach((query) => {
-          query.assets.forEach((asset) => {
-            siteWiseAssetModuleSession
-              .fetchAssetSummary({ assetId: asset.assetId })
-              .then((assetSummary) => {
-                if (assetSummary.assetModelId != null) {
-                  return siteWiseAssetModuleSession.fetchAssetModel({ assetModelId: assetSummary.assetModelId });
-                }
-              })
-              .then((assetModelResponse) => {
-                if (assetModelResponse) {
-                  assetModels[asset.assetId] = assetModelResponse;
-                  emit();
-                }
-              });
-          });
-        });
-
-        return {
-          unsubscribe: () => {
-            unsubscribe();
-          },
-          update: (subscriptionUpdate: SubscriptionUpdate<Query>) => {
-            update(subscriptionUpdate);
-          },
-        };
-      },
+      subscribeToTimeSeriesData: subscribeToTimeSeriesData(dataModule, siteWiseAssetModuleSession),
       registerDataSource: dataModule.registerDataSource,
     }),
   };
