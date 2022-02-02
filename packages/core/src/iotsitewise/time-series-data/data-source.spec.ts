@@ -2,7 +2,7 @@ import flushPromises from 'flush-promises';
 import { IoTSiteWiseClient } from '@aws-sdk/client-iotsitewise';
 import { createDataSource, SITEWISE_DATA_SOURCE } from './data-source';
 import { MINUTE_IN_MS, HOUR_IN_MS } from '../../common/time';
-import { SiteWiseDataStreamQuery } from './types.d';
+import { SiteWiseDataStreamQuery } from './types';
 import {
   ASSET_PROPERTY_DOUBLE_VALUE,
   AGGREGATE_VALUES,
@@ -167,7 +167,6 @@ describe('initiateRequest', () => {
           id: toDataStreamId({ assetId: 'some-asset-id', propertyId: 'some-property-id' }),
           data: [{ x: 1000099, y: 10.123 }],
           resolution: 0,
-          dataType: 'NUMBER',
         }),
       ]);
     });
@@ -254,6 +253,84 @@ describe('initiateRequest', () => {
       });
     });
   });
+});
+
+it('requests raw data if specified per asset property', async () => {
+  const getAssetPropertyValue = jest.fn();
+  const getAssetPropertyAggregates = jest.fn();
+  const getAssetPropertyValueHistory = jest.fn().mockResolvedValue(ASSET_PROPERTY_VALUE_HISTORY);
+  const getInterpolatedAssetPropertyValues = jest.fn();
+
+  const mockSDK = createMockSiteWiseSDK({
+    getAssetPropertyValue,
+    getAssetPropertyValueHistory,
+    getAssetPropertyAggregates,
+    getInterpolatedAssetPropertyValues,
+  });
+
+  const dataSource = createDataSource(mockSDK);
+
+  const query: SiteWiseDataStreamQuery = {
+    source: SITEWISE_DATA_SOURCE,
+    assets: [
+      {
+        assetId: 'some-asset-id',
+        properties: [{ propertyId: 'some-property-id', resolution: '0' }],
+      },
+    ],
+  };
+
+  const onError = jest.fn();
+  const onSuccess = jest.fn();
+
+  dataSource.initiateRequest(
+    {
+      onError,
+      onSuccess,
+      query,
+      request: {
+        viewport: {
+          duration: MINUTE_IN_MS * 55,
+        },
+        settings: {
+          fetchFromStartToEnd: true,
+          fetchAggregatedData: true,
+          resolution: '1m',
+        },
+      },
+    },
+    []
+  );
+
+  await flushPromises();
+
+  expect(getAssetPropertyValue).not.toBeCalled();
+  expect(getInterpolatedAssetPropertyValues).not.toBeCalled();
+
+  expect(getAssetPropertyAggregates).not.toBeCalled();
+
+  expect(getAssetPropertyValueHistory).toBeCalledTimes(1);
+  expect(getAssetPropertyValueHistory).toBeCalledWith(
+    expect.objectContaining({
+      assetId: query.assets[0].assetId,
+      propertyId: query.assets[0].properties[0].propertyId,
+    })
+  );
+
+  expect(onError).not.toBeCalled();
+
+  expect(onSuccess).toBeCalledTimes(1);
+
+  expect(onSuccess).toBeCalledWith([
+    expect.objectContaining({
+      id: toDataStreamId({ assetId: 'some-asset-id', propertyId: 'some-property-id' }),
+      data: [
+        { x: 1000099, y: 10.123 },
+        { x: 2000000, y: 12.01 },
+      ],
+      resolution: 0,
+    }),
+  ]);
 });
 
 describe('e2e through data-module', () => {
@@ -436,7 +513,6 @@ describe('aggregated data', () => {
           ],
         },
         resolution: HOUR_IN_MS,
-        dataType: 'NUMBER',
       }),
     ]);
   });
@@ -526,7 +602,6 @@ describe('aggregated data', () => {
           ],
         },
         resolution: MINUTE_IN_MS,
-        dataType: 'NUMBER',
       }),
     ]);
   });
@@ -633,88 +708,6 @@ describe('aggregated data', () => {
           ],
         },
         resolution: MINUTE_IN_MS,
-        dataType: 'NUMBER',
-      }),
-    ]);
-  });
-
-  it('requests raw data if specified per asset property', async () => {
-    const getAssetPropertyValue = jest.fn();
-    const getAssetPropertyAggregates = jest.fn();
-    const getAssetPropertyValueHistory = jest.fn().mockResolvedValue(ASSET_PROPERTY_VALUE_HISTORY);
-    const getInterpolatedAssetPropertyValues = jest.fn();
-
-    const mockSDK = createMockSiteWiseSDK({
-      getAssetPropertyValue,
-      getAssetPropertyValueHistory,
-      getAssetPropertyAggregates,
-      getInterpolatedAssetPropertyValues,
-    });
-
-    const dataSource = createDataSource(mockSDK);
-
-    const query: SiteWiseDataStreamQuery = {
-      source: SITEWISE_DATA_SOURCE,
-      assets: [
-        {
-          assetId: 'some-asset-id',
-          properties: [{ propertyId: 'some-property-id', resolution: '0' }],
-        },
-      ],
-    };
-
-    const onError = jest.fn();
-    const onSuccess = jest.fn();
-
-    const FIFTY_FIVE_MINUTES = MINUTE_IN_MS * 55;
-
-    dataSource.initiateRequest(
-      {
-        onError,
-        onSuccess,
-        query,
-        request: {
-          viewport: {
-            duration: FIFTY_FIVE_MINUTES,
-          },
-          settings: {
-            fetchFromStartToEnd: true,
-            fetchAggregatedData: true,
-            resolution: '1m',
-          },
-        },
-      },
-      []
-    );
-
-    await flushPromises();
-
-    expect(getAssetPropertyValue).not.toBeCalled();
-    expect(getInterpolatedAssetPropertyValues).not.toBeCalled();
-
-    expect(getAssetPropertyAggregates).not.toBeCalled();
-
-    expect(getAssetPropertyValueHistory).toBeCalledTimes(1);
-    expect(getAssetPropertyValueHistory).toBeCalledWith(
-      expect.objectContaining({
-        assetId: query.assets[0].assetId,
-        propertyId: query.assets[0].properties[0].propertyId,
-      })
-    );
-
-    expect(onError).not.toBeCalled();
-
-    expect(onSuccess).toBeCalledTimes(1);
-
-    expect(onSuccess).toBeCalledWith([
-      expect.objectContaining({
-        id: toDataStreamId({ assetId: 'some-asset-id', propertyId: 'some-property-id' }),
-        data: [
-          { x: 1000099, y: 10.123 },
-          { x: 2000000, y: 12.01 },
-        ],
-        resolution: 0,
-        dataType: 'NUMBER',
       }),
     ]);
   });

@@ -12,7 +12,7 @@ import {
   ListAssociatedAssetsCommandInput,
   ListAssociatedAssetsCommandOutput,
 } from '@aws-sdk/client-iotsitewise';
-import { RefId } from '../data-sources/site-wise/types';
+import { RefId } from '../iotsitewise/time-series-data/types';
 import { CacheSettings } from './data-cache/types';
 import { DataPoint, StreamAssociation } from '@synchro-charts/core/dist/types/utils/dataTypes';
 

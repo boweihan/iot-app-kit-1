@@ -6,9 +6,10 @@ import {
   ASSET_PROPERTY_VALUE_HISTORY,
   AGGREGATE_VALUES,
 } from '../../../common/tests/mocks/assetPropertyValue';
-import { SiteWiseDataStreamQuery } from '../types.d';
+import { SiteWiseDataStreamQuery } from '../types';
 import { toDataStreamId } from '../util/dataStreamId';
 import { SITEWISE_DATA_SOURCE } from '../data-source';
+import { HOUR_IN_MS } from '../../../common/time';
 
 it('initializes', () => {
   expect(() => new SiteWiseClient(createMockSiteWiseSDK({}))).not.toThrowError();
@@ -238,20 +239,23 @@ describe('getAggregatedPropertyDataPoints', () => {
     expect(onSuccess).toBeCalledWith([
       expect.objectContaining({
         id: toDataStreamId({ assetId, propertyId }),
-        data: [
-          {
-            x: 946602000000,
-            y: 5,
-          },
-          {
-            x: 946605600000,
-            y: 7,
-          },
-          {
-            x: 946609200000,
-            y: 10,
-          },
-        ],
+        data: [],
+        aggregates: {
+          [HOUR_IN_MS]: [
+            {
+              x: 946602000000,
+              y: 5,
+            },
+            {
+              x: 946605600000,
+              y: 7,
+            },
+            {
+              x: 946609200000,
+              y: 10,
+            },
+          ],
+        },
       }),
     ]);
   });

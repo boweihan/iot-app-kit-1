@@ -1,6 +1,6 @@
 import { completeDataStreams } from './completeDataStreams';
 import { DATA_STREAM, DATA_STREAM_2 } from './testing/__mocks__/mockWidgetProperties';
-import { toDataStreamId } from './data-sources/site-wise/util/dataStreamId';
+import { toDataStreamId } from './iotsitewise/time-series-data/util/dataStreamId';
 import { DataStream } from './data-module/types';
 import { ASSET_MODEL } from './testing/__mocks__/assetModel';
 import { AssetModelProperty } from '@aws-sdk/client-iotsitewise';

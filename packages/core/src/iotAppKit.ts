@@ -1,6 +1,5 @@
 import { IotAppKitDataModule } from './data-module/IotAppKitDataModule';
-import { sitewiseSdk } from './data-sources/site-wise/sitewise-sdk';
-import { createDataSource } from './data-sources';
+import { sitewiseSdk } from './iotsitewise/time-series-data/sitewise-sdk';
 import {
   DataModuleSubscription,
   DataStream,
@@ -9,12 +8,13 @@ import {
   SiteWiseAssetDataSource,
   SubscriptionUpdate,
 } from './data-module/types';
-import { createSiteWiseAssetDataSource } from './data-sources/site-wise/asset-data-source';
+import { createSiteWiseAssetDataSource } from './iotsitewise/time-series-data/asset-data-source';
 import { SiteWiseAssetModule, SiteWiseAssetTreeModule } from './asset-modules';
-import { SiteWiseDataStreamQuery } from './data-sources/site-wise/types';
+import { SiteWiseDataStreamQuery } from './iotsitewise/time-series-data/types';
 import { DescribeAssetModelResponse } from '@aws-sdk/client-iotsitewise';
 import { completeDataStreams } from './completeDataStreams';
 import { IoTAppKitSession, IoTAppKitInitInputs } from './interface.d';
+import { createDataSource } from './iotsitewise/time-series-data';
 
 /**
  * Initialize IoT App Kit

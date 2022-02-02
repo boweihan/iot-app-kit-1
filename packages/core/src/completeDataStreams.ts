@@ -1,6 +1,6 @@
 import { DescribeAssetModelResponse } from '@aws-sdk/client-iotsitewise';
 import { DataStream, DataType } from './data-module/types';
-import { toSiteWiseAssetProperty } from './data-sources/site-wise/util/dataStreamId';
+import { toSiteWiseAssetProperty } from './iotsitewise/time-series-data/util/dataStreamId';
 import { PropertyDataType } from '@aws-sdk/client-iotsitewise/dist-types/models/models_0';
 
 const toDataType = (propertyDataType: PropertyDataType | string | undefined): DataType => {
