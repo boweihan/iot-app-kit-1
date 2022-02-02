@@ -7,8 +7,8 @@ import { SiteWiseLegacyDataStreamQuery } from './types';
  * Legacy SiteWise data source
  *
  * A temporary bridge between IoT App Kit, and the existing SiteWise Monitor design.
- * @deprecated - DO NOT USE
  */
+/** @deprecated */
 export const createSiteWiseLegacyDataSource = (
   onRequestData: OnRequestData
 ): DataSource<SiteWiseLegacyDataStreamQuery> => ({

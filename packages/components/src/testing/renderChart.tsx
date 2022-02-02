@@ -9,7 +9,6 @@ import {
 } from '@iot-app-kit/core';
 import { MinimalViewPortConfig } from '@synchro-charts/core';
 import { MINUTE_IN_MS } from '@iot-app-kit/core/src/common/time';
-import { SupportedResolutions } from '@iot-app-kit/core/src/data-sources/site-wise/util/resolution';
 const { applyPolyfills, defineCustomElements } = require('@iot-app-kit/components/loader');
 import '@synchro-charts/core/dist/synchro-charts/synchro-charts.css';
 
@@ -43,7 +42,7 @@ const defaultQueries = [
 
 const defaultSettings = {
   resolution: {
-    [3 * MINUTE_IN_MS]: SupportedResolutions.ONE_MINUTE,
+    [3 * MINUTE_IN_MS]: '1m',
   },
   fetchAggregatedData: true,
 };

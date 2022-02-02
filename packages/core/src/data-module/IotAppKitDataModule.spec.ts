@@ -5,7 +5,7 @@ import { DataPoint, DataStreamInfo } from '@synchro-charts/core';
 import { TimeSeriesDataRequest, TimeSeriesDataRequestSettings } from './data-cache/requestTypes';
 import { DataStreamsStore, DataStreamStore } from './data-cache/types';
 import * as caching from './data-cache/caching/caching';
-import { createSiteWiseLegacyDataSource } from '../testing/mock/data-source';
+import { createSiteWiseLegacyDataSource } from '../testing/mock-data-source/data-source';
 import { HOUR_IN_MS, MINUTE_IN_MS, MONTH_IN_MS, SECOND_IN_MS } from '../common/time';
 import { IotAppKitDataModule } from './IotAppKitDataModule';
 
@@ -14,7 +14,7 @@ import { SiteWiseDataStreamQuery } from '../iotsitewise/time-series-data/types';
 import { toDataStreamId, toSiteWiseAssetProperty } from '../iotsitewise/time-series-data/util/dataStreamId';
 
 import Mock = jest.Mock;
-import { SiteWiseLegacyDataStreamQuery } from '../testing/mock';
+import { SiteWiseLegacyDataStreamQuery } from '../testing/mock-data-source';
 
 const { EMPTY_CACHE } = caching;
 
