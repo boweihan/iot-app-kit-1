@@ -24,7 +24,9 @@ export type IoTAppKitSession = {
     unsubscribe: () => void;
     update: (subscriptionUpdate: SubscriptionUpdate<SiteWiseDataStreamQuery>) => void;
   };
-
+  iotsitewise: {
+    subscribeToAssetTree: (query: SiteWiseAssetTreeQuery, callback: SiteWiseAssetTreeCallback) => AssetTreeSubscription;
+  };
   registerDataSource: <Query extends DataStreamQuery>(dataSource: DataSource<Query>) => void;
 };
 

@@ -2,11 +2,9 @@ import { Component, h, Prop, State } from '@stencil/core';
 import {
   AssetTreeSubscription,
   BranchReference,
-  getSiteWiseAssetModule,
   IoTAppKitSession,
-  SiteWiseAssetTreeModule,
+  SiteWiseAssetTreeNode,
   SiteWiseAssetTreeQuery,
-  SiteWiseAssetTreeSession,
 } from '@iot-app-kit/core';
 import { SitewiseAssetResource } from './types';
 import { EmptyStateProps, ITreeNode, UseTreeCollection } from '@iot-app-kit/related-table';
@@ -52,12 +50,12 @@ export class SitewiseResourceExplorer {
   subscription: AssetTreeSubscription;
 
   componentWillLoad() {
-    let session: SiteWiseAssetTreeSession = new SiteWiseAssetTreeModule(getSiteWiseAssetModule()).startSession(
-      this.query
+    this.subscription = this.appKitSession.iotsitewise.subscribeToAssetTree(
+      this.query,
+      (newTree: SiteWiseAssetTreeNode[]) => {
+        this.items = parseSitewiseAssetTree(newTree);
+      }
     );
-    this.subscription = session.subscribe((newTree) => {
-      this.items = parseSitewiseAssetTree(newTree);
-    });
   }
 
   componentWillUnmount() {

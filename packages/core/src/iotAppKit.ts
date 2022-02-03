@@ -6,6 +6,7 @@ import { SiteWiseAssetModule } from './asset-modules';
 import { IoTAppKitSession, IoTAppKitInitInputs } from './interface.d';
 import { createDataSource } from './iotsitewise/time-series-data';
 import { subscribeToTimeSeriesData } from './iotsitewise/time-series-data/coordinator';
+import { subscribeToAssetTree } from './asset-modules/coordinator';
 
 /**
  * Initialize IoT App Kit
@@ -30,6 +31,9 @@ export const initialize = (input: IoTAppKitInitInputs) => {
   return {
     session: (): IoTAppKitSession => ({
       subscribeToTimeSeriesData: subscribeToTimeSeriesData(dataModule, siteWiseAssetModuleSession),
+      iotsitewise: {
+        subscribeToAssetTree: subscribeToAssetTree(siteWiseAssetModuleSession),
+      },
       registerDataSource: dataModule.registerDataSource,
     }),
   };
