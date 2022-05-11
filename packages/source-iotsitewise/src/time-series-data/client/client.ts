@@ -3,22 +3,24 @@ import { IoTSiteWiseClient, AggregateType } from '@aws-sdk/client-iotsitewise';
 import { getLatestPropertyDataPoint } from './getLatestPropertyDataPoint';
 import { getHistoricalPropertyDataPoints } from './getHistoricalPropertyDataPoints';
 import { getAggregatedPropertyDataPoints } from './getAggregatedPropertyDataPoints';
+import { getBatchHistoricalPropertyDataPoints } from './getBatchHistoricalPropertyDataPoints';
 import { OnSuccessCallback, ErrorCallback, RequestInformationAndRange } from '@iot-app-kit/core';
+import { timeout } from 'd3';
 
-type LatestPropertyParams = {
+export type LatestPropertyParams = {
   requestInformations: RequestInformationAndRange[];
   onError: ErrorCallback;
   onSuccess: OnSuccessCallback;
 };
 
-type HistoricalPropertyParams = {
+export type HistoricalPropertyParams = {
   requestInformations: RequestInformationAndRange[];
   maxResults?: number;
   onError: ErrorCallback;
   onSuccess: OnSuccessCallback;
 };
 
-type AggregatedPropertyParams = {
+export type AggregatedPropertyParams = {
   requestInformations: RequestInformationAndRange[];
   aggregateTypes: AggregateType[];
   maxResults?: number;
@@ -52,10 +54,16 @@ export class SiteWiseClient {
       return keys.map(() => undefined); // values are updated in data cache and don't need to be rebroadcast
     });
 
-    this.historicalPropertyDataLoader = new DataLoader<HistoricalPropertyParams, void>(async (keys) => {
-      keys.forEach((key) => getHistoricalPropertyDataPoints({ client: this.siteWiseSdk, ...key }));
-      return keys.map(() => undefined);
-    });
+    this.historicalPropertyDataLoader = new DataLoader<HistoricalPropertyParams, void>(
+      async (keys) => {
+        getBatchHistoricalPropertyDataPoints({ params: keys.flat(), client: this.siteWiseSdk });
+        // keys.forEach((key) => getHistoricalPropertyDataPoints({ client: this.siteWiseSdk, ...key }));
+        return keys.map(() => undefined);
+      },
+      {
+        batchScheduleFn: (callback) => setTimeout(callback, 5000),
+      }
+    );
 
     this.aggregatedPropertyDataLoader = new DataLoader<AggregatedPropertyParams, void>(async (keys) => {
       keys.forEach((key) => getAggregatedPropertyDataPoints({ client: this.siteWiseSdk, ...key }));

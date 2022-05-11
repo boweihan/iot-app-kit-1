@@ -93,6 +93,8 @@ export const dataReducer: Reducer<DataStreamsStore, AsyncActions> = (
         cache: (streamStore && streamStore.dataCache) || EMPTY_CACHE,
       });
 
+      console.log(updatedDataCache);
+
       const existingRequestHistory = streamStore ? streamStore.requestHistory : [];
 
       return {
