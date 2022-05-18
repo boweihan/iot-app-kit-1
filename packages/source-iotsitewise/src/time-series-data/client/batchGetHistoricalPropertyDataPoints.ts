@@ -29,94 +29,107 @@ type BatchEntryCallbackCache = {
   };
 };
 
-const batchGetHistoricalPropertyDataPointsForProperty = async ({
+const sendRequest = ({
   client,
-  entries,
+  batch,
+  maxResults,
+  requestIndex, // used to create unique entryId, retained for pagination
   nextToken: prevToken,
 }: {
   client: IoTSiteWiseClient;
-  entries: BatchHistoricalEntry[];
+  batch: BatchHistoricalEntry[];
+  maxResults: number;
+  requestIndex: number;
   nextToken?: string;
 }) => {
   // callback cache makes it convenient to capture request data in a closure.
   // the cache exposes methods that only require batch response entry as an argument.
   const callbackCache: BatchEntryCallbackCache = {};
 
-  return Promise.all(
+  return client
+    .send(
+      new BatchGetAssetPropertyValueHistoryCommand({
+        entries: batch.map((entry, entryIndex) => {
+          const { requestInformation, onError, onSuccess, requestStart, requestEnd } = entry;
+          const { id } = requestInformation;
+
+          // use 2D array indices as entryIDs to guarantee uniqueness
+          // entryId is used to map batch entries with the appropriate callback
+          const entryId = String(`${requestIndex}-${entryIndex}`);
+
+          // save request entry data in functional closure.
+          callbackCache[entryId] = {
+            onError: ({ errorMessage: msg = 'batch historical error', errorCode: status }) => {
+              onError({
+                id,
+                resolution: 0,
+                error: { msg, status },
+              });
+            },
+            onSuccess: ({ assetPropertyValueHistory }) => {
+              if (assetPropertyValueHistory) {
+                onSuccess(
+                  [
+                    dataStreamFromSiteWise({
+                      ...toSiteWiseAssetProperty(id),
+                      dataPoints: assetPropertyValueHistory
+                        .map((assetPropertyValue) => toDataPoint(assetPropertyValue))
+                        .filter(isDefined),
+                    }),
+                  ],
+                  requestInformation,
+                  requestStart,
+                  requestEnd
+                );
+              }
+            },
+          };
+
+          // BatchGetAssetPropertyValueHistoryEntry
+          return {
+            ...toSiteWiseAssetProperty(requestInformation.id),
+            startDate: requestStart,
+            endDate: requestEnd,
+            entryId,
+            timeOrdering: TimeOrdering.DESCENDING,
+          };
+        }),
+        maxResults,
+        nextToken: prevToken,
+      })
+    )
+    .then((response) => {
+      const { errorEntries, successEntries, nextToken } = response;
+
+      // execute the correct callback for each entry
+      // empty entries and entries that don't exist in the cache are ignored.
+      errorEntries?.forEach((entry) => entry.entryId && callbackCache[entry.entryId]?.onError(entry));
+      successEntries?.forEach((entry) => entry.entryId && callbackCache[entry.entryId]?.onSuccess(entry));
+
+      if (nextToken && maxResults !== 1 /* don't paginate if batch result size is 1 */) {
+        sendRequest({
+          client,
+          batch,
+          maxResults,
+          requestIndex,
+          nextToken,
+        });
+      }
+    });
+};
+
+const batchGetHistoricalPropertyDataPointsForProperty = async ({
+  client,
+  entries,
+}: {
+  client: IoTSiteWiseClient;
+  entries: BatchHistoricalEntry[];
+}) =>
+  Promise.all(
     createEntryBatches<BatchHistoricalEntry>(entries)
       .filter((batch) => batch.length > 0) // filter out empty batches
-      .map(([batch, maxResults], requestIndex) =>
-        client
-          .send(
-            new BatchGetAssetPropertyValueHistoryCommand({
-              entries: batch.map((entry, entryIndex) => {
-                const { requestInformation, onError, onSuccess, requestStart, requestEnd } = entry;
-                const { id } = requestInformation;
-
-                // use 2D array indices as entryIDs to guarantee uniqueness
-                // entryId is used to map batch entries with the appropriate callback
-                const entryId = String(`${requestIndex}-${entryIndex}`);
-
-                // save request entry data in functional closure.
-                callbackCache[entryId] = {
-                  onError: ({ errorMessage: msg = 'batch error', errorCode: status }) => {
-                    onError({
-                      id,
-                      resolution: 0,
-                      error: { msg, status },
-                    });
-                  },
-                  onSuccess: ({ assetPropertyValueHistory }) => {
-                    if (assetPropertyValueHistory) {
-                      onSuccess(
-                        [
-                          dataStreamFromSiteWise({
-                            ...toSiteWiseAssetProperty(id),
-                            dataPoints: assetPropertyValueHistory
-                              .map((assetPropertyValue) => toDataPoint(assetPropertyValue))
-                              .filter(isDefined),
-                          }),
-                        ],
-                        requestInformation,
-                        requestStart,
-                        requestEnd
-                      );
-                    }
-                  },
-                };
-
-                // BatchGetAssetPropertyValueHistoryEntry
-                return {
-                  ...toSiteWiseAssetProperty(requestInformation.id),
-                  startDate: requestStart,
-                  endDate: requestEnd,
-                  entryId,
-                  timeOrdering: TimeOrdering.DESCENDING,
-                };
-              }),
-              maxResults,
-              nextToken: prevToken,
-            })
-          )
-          .then((response) => {
-            const { errorEntries, successEntries, nextToken } = response;
-
-            // execute the correct callback for each entry
-            // empty entries and entries that don't exist in the cache are ignored.
-            errorEntries?.forEach((entry) => entry.entryId && callbackCache[entry.entryId]?.onError(entry));
-            successEntries?.forEach((entry) => entry.entryId && callbackCache[entry.entryId]?.onSuccess(entry));
-
-            if (nextToken && requestIndex > 0 /* don't paginate on first batch */) {
-              batchGetHistoricalPropertyDataPointsForProperty({
-                entries: batch,
-                nextToken,
-                client,
-              });
-            }
-          })
-      )
+      .map(([batch, maxResults], requestIndex) => sendRequest({ client, batch, maxResults, requestIndex }))
   );
-};
 
 export const batchGetHistoricalPropertyDataPoints = async ({
   params,
